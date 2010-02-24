@@ -1,5 +1,6 @@
 package net.ileto.jstools.jsunit.mojo
 
+import java.io.File;
 import org.codehaus.gmaven.mojo.GroovyMojo
 
 import junit.textui.TestRunner
@@ -254,40 +255,44 @@ class JsUnitMojo extends GroovyMojo {
 	}
 	
 	void copyJsUnitResources() {
-		[	'/jsunit/testRunner.html',
-		'/jsunit/VERSION.txt',
-		'/jsunit/app/emptyPage.html',
-		'/jsunit/app/jsUnitCore.js',
-		'/jsunit/app/jsUnitMockTimeout.js',
-		'/jsunit/app/jsUnitTestManager.js',
-		'/jsunit/app/jsUnitTestSuite.js',
-		'/jsunit/app/jsUnitTracer.js',
-		'/jsunit/app/jsUnitVersionCheck.js',
-		'/jsunit/app/main-counts.html',
-		'/jsunit/app/main-counts-errors.html',
-		'/jsunit/app/main-counts-failures.html',
-		'/jsunit/app/main-counts-runs.html',
-		'/jsunit/app/main-data.html',
-		'/jsunit/app/main-errors.html',
-		'/jsunit/app/main-frame.html',
-		'/jsunit/app/main-loader.html',
-		'/jsunit/app/main-progress.html',
-		'/jsunit/app/main-results.html',
-		'/jsunit/app/main-status.html',
-		'/jsunit/app/testContainer.html',
-		'/jsunit/app/testContainerController.html',
-		'/jsunit/app/xbDebug.js',
-		'/jsunit/css/jsUnitStyle.css',
-		'/jsunit/images/green.gif',
-		'/jsunit/images/logo_jsunit.gif',
-		'/jsunit/images/powerby-transparent.gif',
-		'/jsunit/images/red.gif'
-		].each {
-			File f = new File(workDirectory, it.replaceFirst('/jsunit',jsUnitPath))
-			FileUtils.forceMkdir(f.getParentFile())
-			f.createNewFile()
-			IOUtils.copy(getClass().getResourceAsStream(it), new FileOutputStream(f))
-		}
+//		[	'/jsunit/testRunner.html',
+//		'/jsunit/VERSION.txt',
+//		'/jsunit/app/emptyPage.html',
+//		'/jsunit/app/jsUnitCore.js',
+//		'/jsunit/app/jsUnitMockTimeout.js',
+//		'/jsunit/app/jsUnitTestManager.js',
+//		'/jsunit/app/jsUnitTestSuite.js',
+//		'/jsunit/app/jsUnitTracer.js',
+//		'/jsunit/app/jsUnitVersionCheck.js',
+//		'/jsunit/app/main-counts.html',
+//		'/jsunit/app/main-counts-errors.html',
+//		'/jsunit/app/main-counts-failures.html',
+//		'/jsunit/app/main-counts-runs.html',
+//		'/jsunit/app/main-data.html',
+//		'/jsunit/app/main-errors.html',
+//		'/jsunit/app/main-frame.html',
+//		'/jsunit/app/main-loader.html',
+//		'/jsunit/app/main-progress.html',
+//		'/jsunit/app/main-results.html',
+//		'/jsunit/app/main-status.html',
+//		'/jsunit/app/testContainer.html',
+//		'/jsunit/app/testContainerController.html',
+//		'/jsunit/app/xbDebug.js',
+//		'/jsunit/css/jsUnitStyle.css',
+//		'/jsunit/images/green.gif',
+//		'/jsunit/images/logo_jsunit.gif',
+//		'/jsunit/images/powerby-transparent.gif',
+//		'/jsunit/images/red.gif'
+//		].each {
+//			File f = new File(workDirectory, it.replaceFirst('/jsunit',jsUnitPath))
+//			FileUtils.forceMkdir(f.getParentFile())
+//			f.createNewFile()
+//			IOUtils.copy(getClass().getResourceAsStream(it), new FileOutputStream(f))
+//		}
+		File temp = File.createTempFile('E3658158', '')
+		IOUtils.copy(getClass().getResourceAsStream('/jsunit.zip'), new FileOutputStream(temp))
+		ant.unzip(src:temp, dest:workDirectory)
+		temp.delete()
 	}
 	
 	private URL getTestRunnerUrl() {
