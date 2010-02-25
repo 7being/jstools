@@ -4,23 +4,18 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>net.ileto.jstools</groupId>
-  <artifactId>maven-jsunit-plugin</artifactId>
+  <groupId>net.ileto.maven</groupId>
+  <artifactId>maven-jstools-plugin</artifactId>
   <packaging>maven-plugin</packaging>
   <version>1.0-SNAPSHOT</version>
 
-  <name>Maven Jsunit Plugin</name>
+  <name>Maven Jstools Plugin</name>
 
   <dependencies>
     <dependency>
       <groupId>org.codehaus.gmaven</groupId>
       <artifactId>gmaven-mojo</artifactId>
       <version>1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>net.jsunit</groupId>
-      <artifactId>jsunit</artifactId>
-      <version>2.1.4</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -37,6 +32,16 @@
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
       <version>2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jsunit</groupId>
+      <artifactId>jsunit</artifactId>
+      <version>2.1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo</groupId>
+      <artifactId>yuicompressor</artifactId>
+      <version>2.4.2</version>
     </dependency>
   </dependencies>
 
@@ -63,5 +68,12 @@
   <properties>
     <gmaven.runtime>1.5</gmaven.runtime> <!-- read by gmaven -->
   </properties>
+
+  <repositories>
+    <repository>
+      <id>atlassian-proxy</id>
+      <url>https://maven.atlassian.com/repository/public</url>
+    </repository>
+  </repositories>
 
 </project>

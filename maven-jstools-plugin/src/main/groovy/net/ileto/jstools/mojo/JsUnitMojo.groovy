@@ -1,4 +1,4 @@
-package net.ileto.jstools.jsunit.mojo
+package net.ileto.jstools.mojo
 
 import java.io.File;
 import org.codehaus.gmaven.mojo.GroovyMojo
@@ -8,7 +8,6 @@ import junit.framework.TestResult
 
 import net.jsunit.StandaloneTest
 
-import org.apache.commons.lang.StringUtils
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
@@ -17,7 +16,7 @@ import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.project.MavenProject
 
-import net.ileto.jstools.jsunit.utility.FileUtility
+import net.ileto.jstools.utility.FileUtility
 import net.ileto.jstools.jsunit.template.TestSuiteTemplate
 import net.ileto.jstools.jsunit.template.TestPageTemplate
 
@@ -118,6 +117,17 @@ class JsUnitMojo extends GroovyMojo {
 	private String port = "8090"
 	
 	/**
+	 * browserFileNames is a comma-separated list of paths to the executables
+	 * of the browsers on which you want to run your JsUnit test suite.
+	 * For example, if you want to run the tests on Internet Explorer and 
+	 * Firefox, its value might be 
+	 * c:\program files\internet explorer\iexplore.exe,c:\program files\Mozilla Firefox\firefox.exe
+	 * 
+	 * @parameter
+	 */
+	private String browsers = ''
+	
+	/**
 	 * autoRun is used to inform JsUnit whether to immediately kick off a run.
 	 * For example, entering the URL "c:\jsunit\testRunner.html?testpage=c:\myTests\aTest.html&autoRun=true"
 	 * will launch JsUnit and populate the Test Page box with c:\myTests\aTest.html and
@@ -129,23 +139,12 @@ class JsUnitMojo extends GroovyMojo {
 	private boolean autoRun = true
 	
 	/**
-	 * browserFileNames is a comma-separated list of paths to the executables
-	 * of the browsers on which you want to run your JsUnit test suite.
-	 * For example, if you want to run the tests on Internet Explorer and 
-	 * Firefox, its value might be 
-	 * c:\program files\internet explorer\iexplore.exe,c:\program files\Mozilla Firefox\firefox.exe
-	 * 
-	 * @parameter
-	 */
-	private String browserFileNames = ''
-	
-	/**
 	 * closeBrowserAfterTestRuns determines whether to attempt to close browsers
 	 * after test runs.  The default is true.
 	 * 
 	 * @parameter default-value="true"
 	 */
-	private boolean closeBrowsersAfterTestRuns = true
+	private boolean closeBrowsers = true
 	
 	/**
 	 * showTestFrame is used to tell JsUnit whether to make this Test Frame 
@@ -225,7 +224,7 @@ class JsUnitMojo extends GroovyMojo {
 		System.setProperty("port", port)
 		System.setProperty("browserFileNames", getBrowserFileNames())
 		System.setProperty("logsDirectory", logsDirectory.getAbsolutePath())
-		System.setProperty("closeBrowsersAfterTestRuns", closeBrowsersAfterTestRuns.toString())
+		System.setProperty("closeBrowsersAfterTestRuns", closeBrowsers.toString())
 	}
 	
 	File generateTestSuite() {
@@ -297,7 +296,7 @@ class JsUnitMojo extends GroovyMojo {
 	}
 	
 	String getBrowserFileNames() {
-		return trimTokens(browserFileNames, ',')
+		return trimTokens(browsers, ',')
 	}
 	
 	private String trimTokens(String s, String delim) {

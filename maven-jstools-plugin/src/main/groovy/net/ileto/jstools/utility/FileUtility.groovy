@@ -1,6 +1,7 @@
-package net.ileto.jstools.jsunit.utility
+package net.ileto.jstools.utility
 
 import java.io.File;
+import org.apache.commons.lang.StringUtils
 
 class FileUtility {
 	
@@ -21,5 +22,12 @@ class FileUtility {
 			toPath = '..' + File.separator + toPath
 		}
 		return toPath
+	}
+	
+	
+	static File replaceStart(File f, File start, File replace) {
+		String path = StringUtils.removeStart(f.path, start.path)
+		path = StringUtils.removeStart(path, File.pathSeparator)
+		return new File(replace, path)
 	}
 }

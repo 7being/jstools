@@ -1,6 +1,12 @@
 
-/maven-jsunit-plugin/.project
-/maven-jsunit-plugin/.classpath
-/maven-jsunit-plugin/.settings
-/maven-jsunit-plugin/target
+/maven-jstools-plugin/.project
+/maven-jstools-plugin/.classpath
+/maven-jstools-plugin/.settings
+/maven-jstools-plugin/target
+
+/maven-jstools-example/.project
+/maven-jstools-example/.classpath
+/maven-jstools-example/.settings
+/maven-jstools-example/target
 *.swp
+*~

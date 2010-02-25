@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+
+	<script type="text/javascript" src="../jsunit/app/jsUnitCore.js"></script>
+	<script type="text/javascript" src="ogre.js"></script>
+	<script type="text/javascript">
+		/**
+		 * TODO testExtend
+		 * TODO testF
+		 * TODO testH
+		 * TODO testGet
+		 * TODO testSet
+		 * TODO testHas
+		 * TODO testImports
+		 * TODO testInclude
+		 * TODO testNamespace
+		 * TODO testEvalScript
+		 *
+		 */
+
+		// type
+		//-----------------------------------------------------------
+		// TODO test 'testnode' 'whitespace' 'nodeList'
+		//-----------------------------------------------------------
+		function testType() {
+			//test null undefined
+			assertFalse(ogre.type());
+			assertFalse(ogre.type(null));
+			//test number
+			var c = 1, d = new Number(0);
+			assertTrue(ogre.type(1) === 'number');
+			assertTrue(ogre.type(new Number(0)) === 'number');
+			//test string
+			assertTrue(ogre.type('foo bar') === 'string');
+			assertTrue(ogre.type(new String('robot')) === 'string');
+			//test function
+			assertTrue(ogre.type(function(){}) === 'function');
+			assertTrue(ogre.type(new Function()) === 'function');
+			//test boolean
+			assertTrue(ogre.type(true) === 'boolean');
+			assertTrue(ogre.type(new Boolean(false)) === 'boolean');
+			//test array
+			assertTrue(ogre.type([]) === 'array');
+			assertTrue(ogre.type(new Array) === 'array');
+			//test object
+			assertTrue(ogre.type({}) === 'object');
+			assertTrue(ogre.type(new Object) === 'object');
+			//test NaN
+			//assertTrue(ogre.type('abc'*3) === false);
+			//test date
+			assertTrue(ogre.type(new Date) === 'date');
+			//test arguments	
+            //typeof(arguments) in opera is 'array' directly
+			//assertTrue(ogre.type(arguments) === 'arguments');
+			//test element
+			assertTrue(ogre.type(document.getElementById("fff")) === 'element');
+			//test regexp
+			assertTrue(ogre.type(/^$/) === 'regexp');
+		};
+		// A
+		function testA() {
+			assertTrue(ogre.type(ogre.A()) === 'array' && ogre.A().length === 0)
+			var a = ogre.A(0);
+			assertTrue(ogre.type(a) === 'array' && a.length === 1);
+			var b = ogre.A('a');
+			assertTrue(ogre.type(b) === 'array' && b.length === 1);
+			var c = ogre.A(false);
+			assertTrue(ogre.type(c) === 'array' && c.length === 1);
+			var d = ogre.A([2,3]);
+			assertTrue(ogre.type(d) === 'array' && d.length === 2);
+			var e = ogre.A({'a':'good'});
+			assertTrue(ogre.type(e) === 'array' && e.length === 1);
+			var f = ogre.A(function(){});
+			assertTrue(ogre.type(f) === 'array' && f.length === 1);
+
+			var g = ogre.A((function(){return arguments;})(1,2,3));
+			assertTrue(ogre.type(g) === 'array' && g.length === 3);
+		};
+		// equal
+		function testEqual() {
+			var a1 = 1, a2 = 1;
+			assertTrue(ogre.equal(a1,a2) === true);
+			var b1 = 1, b2 = '1';
+			assertTrue(ogre.equal(b1,b2) === false);
+			var c1 = 1, c2 = 0;
+			assertTrue(ogre.equal(c1,c2) === false);
+			var d1 = {a:1,b:{a:1,b:2, c:{a:1,b:2,c:3}},c:3};
+			var d2 = {b:{a:1,b:2, c:{a:1,b:2,c:3}},c:3,a:1};
+			var d3 = {a:1,b:2,c:4};
+			assertTrue(ogre.equal(d1,d2) === true);
+			assertTrue(ogre.equal(d2,d3) === false);
+
+			assertTrue(ogre.equal('123', new String('123')));
+			assertTrue(ogre.equal(123, new Number(123)));
+
+			assertTrue(ogre.equal(["123", "abc"], ["123", "abc"]));
+		};
+		// clone
+		function testClone() {
+			var d1 = {a:1,b:{a:1,b:2, c:{a:1,b:2,c:3}},c:3};
+			var d2 = ogre.clone(d1);
+			assertTrue(ogre.equal(d1,d2));
+			assertFalse(d1 === d2);
+		};
+		// merge
+		function testMerge() {
+			var desired = {
+				a: 1,
+				b: 2,
+				c: {
+					d: 3,
+					e: 4
+				}
+			};
+			var merged = ogre.merge(null, {a:2},{b:{c:3}}, {a:1},{b:2},{c:4},{c:{d:3}},{c:{e:4}});
+			assertTrue(ogre.equal(desired, merged));
+		};
+	</script>
+</head>
+<body>
+	<h1>Test ogre.js</h1>
+	<form id="fff" name="form1">
+		<input type="hidden" value="foo"/>
+	</form>
+</body>
+</html>
