@@ -25,7 +25,7 @@ class YuiCompressorMojo extends GroovyMojo {
 	 * @required
 	 * @parameter
 	 */
-	private File name;
+	private String name;
 	
 	/**
 	 * @parameter default-value="${project.version}"
@@ -40,16 +40,11 @@ class YuiCompressorMojo extends GroovyMojo {
 	private File sourceDirectory
 	
 	/**
-	 * @parameter expression="${project.build.directory}"
+	 * @parameter expression="${project.build.directory}/classes"
 	 */
 	private File outputDirectory
 	
 	/**
-	 * List of patterns (separated by commas) used to specify the tests that 
-	 * should be included in testing.  When not specified and when the 
-	 * test parameter is not specified, the default includes will be 
-	 * **\/Test*.html, **\/*Test.html, **\/*TestCase.html
-	 * 
 	 * @parameter 
 	 */
 	private String includes = '**/*.js'
@@ -65,7 +60,7 @@ class YuiCompressorMojo extends GroovyMojo {
 	/**
 	 * Set this to 'true' to bypass unit tests entirely.  
 	 * 
-	 * @parameter expression="${jsunit.skip}" default-value="false"
+	 * @parameter default-value="false"
 	 */
 	private boolean skip = false
 	
@@ -97,14 +92,15 @@ class YuiCompressorMojo extends GroovyMojo {
 
 	
 	File generateAllFile() {
-		for (file in getJavascripts()) {
+		File output = getAllOutput()
+		for (file in getJavascripts()) {	
 			output.append(new FileInputStream(file))
-			output.write(';')
+			output.append(';')
 		}
 		return output
 	}
 	
-	def	genereateMinFile(File input) {
+	void generateMinFile(File input) {
 		JavaScriptCompressor compressor = new JavaScriptCompressor(new InputStreamReader(new FileInputStream(input)),
 				new ToolErrorReporter(true));
 		
@@ -114,10 +110,14 @@ class YuiCompressorMojo extends GroovyMojo {
 	}
 	
 	File getAllOutput() {
-		return new File(outputDirectory, name + '-' + version + '.js')
+		File f = new File(outputDirectory, name + '-' + version + '.js')
+		f.createNewFile()
+		return f
 	}
 	
 	File getMinOutput() {
-		return new File(outputDirectory, name + '-' + version + '.min.js')
+		File f = new File(outputDirectory, name + '-' + version + '.min.js')
+		f.createNewFile()
+		return f
 	}
 }

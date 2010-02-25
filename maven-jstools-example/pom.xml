@@ -37,7 +37,9 @@
         <artifactId>maven-jstools-plugin</artifactId>
         <version>1.0-SNAPSHOT</version>
         <executions>
+	
           <execution>
+		    <id>jsunit</id>
             <phase>test</phase>
             <goals>
               <goal>jsunit</goal>
@@ -53,7 +55,9 @@
               <!--<excludes>**/*FunctionalTest.html</excludes>-->
             </configuration>
           </execution>
+		  
           <execution>
+			<id>compress</id>
             <phase>process-resources</phase>
             <goals>
               <goal>compress</goal>
@@ -63,6 +67,7 @@
               <version>0.0.1</version>
             </configuration>
           </execution>
+
         </executions>
       </plugin>
     </plugins>

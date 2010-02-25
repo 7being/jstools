@@ -249,8 +249,8 @@ class JsUnitMojo extends GroovyMojo {
 		
 		File jsUnitCore = new File(workDirectory, "$jsUnitPath/app/jsUnitCore.js")
 		for (f in scanner) {
-			File copyed = replaceStart(f, testSourceDirectory, workDirectory)
-			File parsed = new File(StringUtils.removeEnd(copyed.path, '.js') + '.html')
+			File copyed = FileUtility.replaceStart(f, testSourceDirectory, workDirectory)
+			File parsed = FileUtility.replaceExtension(copyed, 'html')
 			
 			String html = new TestPageTemplate().process([
 				file: copyed,
@@ -280,15 +280,9 @@ class JsUnitMojo extends GroovyMojo {
 		
 		List<File> result = []
 		for(f in scanner) {
-			result << replaceStart(f, testSourceDirectory, workDirectory)
+			result << FileUtility.replaceStart(f, testSourceDirectory, workDirectory)
 		}
 		return result
-	}
-	
-	File replaceStart(File f, File start, File replace) {
-		String path = StringUtils.removeStart(f.path, start.path)
-		path = StringUtils.removeStart(path, File.pathSeparator)
-		return new File(replace, path)
 	}
 	
 	private URL getTestRunnerUrl() {

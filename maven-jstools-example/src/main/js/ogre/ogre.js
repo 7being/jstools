@@ -13,10 +13,10 @@ function _loadOgreLangs() {
     for (var i = 0; i < 4; i++) {
         ogre.imports('ogre.lang.' + langs[i]);
 
-        var native = ogre.get(window, langs[i]);
+        var pure = ogre.get(window, langs[i]);
         var ogrish = ogre.get(ogre.lang, langs[i]);
 
-        ogre.extend(native.prototype, ogrish.prototype, override);
+        ogre.extend(pure.prototype, ogrish.prototype, override);
     }
 
 	for (var i = 4; i < 6; i++) {

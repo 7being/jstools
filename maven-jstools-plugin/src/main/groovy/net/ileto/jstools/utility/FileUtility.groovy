@@ -30,4 +30,8 @@ class FileUtility {
 		path = StringUtils.removeStart(path, File.pathSeparator)
 		return new File(replace, path)
 	}
+	
+	static File replaceExtension(File f, String ext) {
+		return new File((f.path =~ /\..+$/).replaceFirst(ext.startsWith('.') ? ext : ('.' + ext)))
+	}
 }
