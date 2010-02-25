@@ -211,7 +211,7 @@ class JsUnitMojo extends GroovyMojo {
 	}
 	
 	void copyTestSources() {
-		if(!testSourceDirectory.exists()) {
+		if (!testSourceDirectory.exists()) {
 			return 
 		}
 		ant.copy(todir:workDirectory) { fileset(dir:testSourceDirectory) }
@@ -266,7 +266,7 @@ class JsUnitMojo extends GroovyMojo {
 			return []
 		}
 		def scanner = ant.fileScanner {
-			fileset(dir: testSourceDirectory) {
+			fileset(dir: workDirectory) {
 				if(!test) {
 					includes.split(',').each { include(name:it) }
 					excludes.split(',').each { exclude(name:it) }
@@ -275,12 +275,13 @@ class JsUnitMojo extends GroovyMojo {
 						include(name:"**/${it}.html")
 					}
 				}
+				exclude(name:"$jsUnitPath/**/*.html")
 			}
 		}
 		
 		List<File> result = []
-		for(f in scanner) {
-			result << FileUtility.replaceStart(f, testSourceDirectory, workDirectory)
+		for (f in scanner) {
+			result << f
 		}
 		return result
 	}
