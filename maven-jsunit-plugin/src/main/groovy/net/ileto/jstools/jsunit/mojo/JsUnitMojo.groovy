@@ -17,7 +17,9 @@ import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.project.MavenProject
 
+import net.ileto.jstools.jsunit.utility.FileUtility
 import net.ileto.jstools.jsunit.template.TestSuiteTemplate
+import net.ileto.jstools.jsunit.template.TestPageTemplate
 
 /**
  * Runs tests using jsunit.
@@ -41,6 +43,45 @@ class JsUnitMojo extends GroovyMojo {
 	 */
 	private File workDirectory
 	
+	/**
+	 * logsDirectory is the directory into which the JsUnit Server will
+	 * write its XML logs.  If not specified, it defaults to 
+	 * ${project.build.directory}/jsunit-reports
+	 * 
+	 * @parameter expression="${project.build.directory}/jsunit-reports"
+	 */
+	private File logsDirectory
+	
+	/**
+	 * The javascript source directory.
+	 * 
+	 * @parameter expression="${basedir}/src/main/js"
+	 */
+	private File sourceDirectory
+	
+	/**
+	 * The javascript test source directory
+	 * 
+	 * @parameter expression="${basedir}/src/test/js"
+	 */
+	private File testSourceDirectory
+	
+	/**
+	 * The path to the jsunit distribution relative to workDirectory.
+	 * 
+	 * @readonly
+	 * @parameter default-value="jsunit"
+	 */
+	private String jsUnitPath 
+	
+	/**
+	 * The file name of the generated test page.
+	 * 
+	 * @readonly
+	 * @parameter default-value="TestSuite.html"
+	 */
+	private String testSuiteFileName = 'TestSuite.html'
+
 	/**
 	 * Specify this parameter to run individual tests by file name.
 	 * Each pattern you specify here will be used to create an include pattern
@@ -70,32 +111,22 @@ class JsUnitMojo extends GroovyMojo {
 	private String excludes = ''
 	
 	/**
-	 * The file name of the generated test page.
+	 * port is the port on which the JsUnit server will run.  
 	 * 
-	 * @parameter default-value="UnitTests.html"
+	 * @parameter default-value="8090"
 	 */
-	private String testPageFileName = 'UnitTests.html'
+	private String port = "8090"
 	
 	/**
-	 * The path to the jsunit distribution relative to workDirectory.
+	 * autoRun is used to inform JsUnit whether to immediately kick off a run.
+	 * For example, entering the URL "c:\jsunit\testRunner.html?testpage=c:\myTests\aTest.html&autoRun=true"
+	 * will launch JsUnit and populate the Test Page box with c:\myTests\aTest.html and
+	 * immediately kick off the tests.  Of course, if you pass auotRun=true, you 
+	 * need to also pass in a testPage.  Defaults to true.
 	 * 
-	 * @parameter default-value="jsunit"
+	 * @parameter default-value="true"
 	 */
-	private String jsUnitPath 
-	
-	/**
-	 * The javascript source directory.
-	 * 
-	 * @parameter expression="${basedir}/src/main/js"
-	 */
-	private File sourceDirectory
-	
-	/**
-	 * The javascript test source directory
-	 * 
-	 * @parameter expression="${basedir}/src/test/js"
-	 */
-	private File testSourceDirectory
+	private boolean autoRun = true
 	
 	/**
 	 * browserFileNames is a comma-separated list of paths to the executables
@@ -109,39 +140,12 @@ class JsUnitMojo extends GroovyMojo {
 	private String browserFileNames = ''
 	
 	/**
-	 * port is the port on which the JsUnit server will run.  
-	 * 
-	 * @parameter default-value="8090"
-	 */
-	private String port = "8090"
-	
-	/**
-	 * logsDirectory is the directory into which the JsUnit Server will
-	 * write its XML logs.  If not specified, it defaults to 
-	 * ${project.build.directory}/jsunit-reports
-	 * 
-	 * @parameter expression="${project.build.directory}/jsunit-reports"
-	 */
-	private File logsDirectory
-	
-	/**
 	 * closeBrowserAfterTestRuns determines whether to attempt to close browsers
 	 * after test runs.  The default is true.
 	 * 
 	 * @parameter default-value="true"
 	 */
 	private boolean closeBrowsersAfterTestRuns = true
-	
-	/**
-	 * autoRun is used to inform JsUnit whether to immediately kick off a run.
-	 * For example, entering the URL "c:\jsunit\testRunner.html?testpage=c:\myTests\aTest.html&autoRun=true"
-	 * will launch JsUnit and populate the Test Page box with c:\myTests\aTest.html and
-	 * immediately kick off the tests.  Of course, if you pass auotRun=true, you 
-	 * need to also pass in a testPage.  Defaults to true.
-	 * 
-	 * @parameter default-value="true"
-	 */
-	private boolean autoRun = true
 	
 	/**
 	 * showTestFrame is used to tell JsUnit whether to make this Test Frame 
@@ -177,10 +181,12 @@ class JsUnitMojo extends GroovyMojo {
 		}
 		
 		makeWorkDirectory()
+		copyJsUnitResources()
+		
 		copySources()
 		copyTestSources()
-		copyJsUnitResources()
-		configureServer( generateTestPage() )
+		
+		configureServer(generateTestSuite())
 		
 		if(!skipTests) {
 			TestRunner.run(StandaloneTest)
@@ -189,6 +195,13 @@ class JsUnitMojo extends GroovyMojo {
 	
 	void makeWorkDirectory() {
 		ant.mkdir(dir:workDirectory)
+	}
+	
+	void copyJsUnitResources() {
+		File temp = File.createTempFile('E3658158', '')
+		IOUtils.copy(getClass().getResourceAsStream('/jsunit.zip'), new FileOutputStream(temp))
+		ant.unzip(src:temp, dest:workDirectory)
+		temp.delete()
 	}
 	
 	void copySources() {
@@ -203,24 +216,50 @@ class JsUnitMojo extends GroovyMojo {
 			return 
 		}
 		ant.copy(todir:workDirectory) { fileset(dir:testSourceDirectory) }
+		
+		generateTestPagesForJS()
 	}
 	
 	void configureServer(File testPage) {
 		System.setProperty("url", "${testRunnerUrl}?testPage=${testPage}&autoRun=${autoRun}&submitResults=localhost:${port}/jsunit/acceptor&showTestFrame=${showTestFrame}")
-		System.setProperty("browserFileNames", getBrowserFileNames())
 		System.setProperty("port", port)
+		System.setProperty("browserFileNames", getBrowserFileNames())
 		System.setProperty("logsDirectory", logsDirectory.getAbsolutePath())
 		System.setProperty("closeBrowsersAfterTestRuns", closeBrowsersAfterTestRuns.toString())
 	}
 	
-	File generateTestPage() {
+	File generateTestSuite() {
 		String html = new TestSuiteTemplate().process([
-		files: getTests(),
-		jsUnitCore: "$jsUnitPath/app/jsUnitCore.js"
+			files: getTests(),
+			jsUnitCore: "$jsUnitPath/app/jsUnitCore.js"
 		])
-		File result = new File(workDirectory, testPageFileName)
+		File result = new File(workDirectory, testSuiteFileName)
 		result.write(html)
 		return result
+	}
+	
+	File generateTestPagesForJS() {
+		if(!testSourceDirectory.exists()) {
+			return
+		}
+		def	scanner = ant.fileScanner {
+			fileset(dir: testSourceDirectory) {
+				include(name:'**/*.js')
+			}
+		}
+		
+		File jsUnitCore = new File(workDirectory, "$jsUnitPath/app/jsUnitCore.js")
+		for (f in scanner) {
+			File copyed = replaceStart(f, testSourceDirectory, workDirectory)
+			File parsed = new File(StringUtils.removeEnd(copyed.path, '.js') + '.html')
+			
+			String html = new TestPageTemplate().process([
+				file: copyed,
+				jsUnitCore: FileUtility.relativePathTo(jsUnitCore, copyed).replace(File.separator, '/')
+			])      
+			
+			parsed.write(html)
+		}
 	}
 	
 	List<File> getTests() {
@@ -232,8 +271,7 @@ class JsUnitMojo extends GroovyMojo {
 				if(!test) {
 					includes.split(',').each { include(name:it) }
 					excludes.split(',').each { exclude(name:it) }
-				} 
-				else {
+				} else {
 					test.split(',').each {
 						include(name:"**/${it}.html")
 					}
@@ -252,47 +290,6 @@ class JsUnitMojo extends GroovyMojo {
 		String path = StringUtils.removeStart(f.path, start.path)
 		path = StringUtils.removeStart(path, File.pathSeparator)
 		return new File(replace, path)
-	}
-	
-	void copyJsUnitResources() {
-//		[	'/jsunit/testRunner.html',
-//		'/jsunit/VERSION.txt',
-//		'/jsunit/app/emptyPage.html',
-//		'/jsunit/app/jsUnitCore.js',
-//		'/jsunit/app/jsUnitMockTimeout.js',
-//		'/jsunit/app/jsUnitTestManager.js',
-//		'/jsunit/app/jsUnitTestSuite.js',
-//		'/jsunit/app/jsUnitTracer.js',
-//		'/jsunit/app/jsUnitVersionCheck.js',
-//		'/jsunit/app/main-counts.html',
-//		'/jsunit/app/main-counts-errors.html',
-//		'/jsunit/app/main-counts-failures.html',
-//		'/jsunit/app/main-counts-runs.html',
-//		'/jsunit/app/main-data.html',
-//		'/jsunit/app/main-errors.html',
-//		'/jsunit/app/main-frame.html',
-//		'/jsunit/app/main-loader.html',
-//		'/jsunit/app/main-progress.html',
-//		'/jsunit/app/main-results.html',
-//		'/jsunit/app/main-status.html',
-//		'/jsunit/app/testContainer.html',
-//		'/jsunit/app/testContainerController.html',
-//		'/jsunit/app/xbDebug.js',
-//		'/jsunit/css/jsUnitStyle.css',
-//		'/jsunit/images/green.gif',
-//		'/jsunit/images/logo_jsunit.gif',
-//		'/jsunit/images/powerby-transparent.gif',
-//		'/jsunit/images/red.gif'
-//		].each {
-//			File f = new File(workDirectory, it.replaceFirst('/jsunit',jsUnitPath))
-//			FileUtils.forceMkdir(f.getParentFile())
-//			f.createNewFile()
-//			IOUtils.copy(getClass().getResourceAsStream(it), new FileOutputStream(f))
-//		}
-		File temp = File.createTempFile('E3658158', '')
-		IOUtils.copy(getClass().getResourceAsStream('/jsunit.zip'), new FileOutputStream(temp))
-		ant.unzip(src:temp, dest:workDirectory)
-		temp.delete()
 	}
 	
 	private URL getTestRunnerUrl() {
