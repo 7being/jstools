@@ -72,7 +72,7 @@ class YuiCompressorMojo extends GroovyMojo {
 		generateMinFile(generateAllFile())
 	}
 
-	List<File> getJavascripts() {
+	def getJavascripts() {
 		if(!sourceDirectory.exists()) {
 			return []
 		}
@@ -87,20 +87,20 @@ class YuiCompressorMojo extends GroovyMojo {
 		for(f in scanner) {
 			result << f
 		}
-		return result
+		result
 	}
 
 	
-	File generateAllFile() {
+	def generateAllFile() {
 		File output = getAllOutput()
 		for (file in getJavascripts()) {	
 			output.append(new FileInputStream(file))
 			output.append(';')
 		}
-		return output
+		output
 	}
 	
-	void generateMinFile(File input) {
+	def generateMinFile(File input) {
 		JavaScriptCompressor compressor = new JavaScriptCompressor(new InputStreamReader(new FileInputStream(input)),
 				new ToolErrorReporter(true));
 		
@@ -109,15 +109,15 @@ class YuiCompressorMojo extends GroovyMojo {
 		writer.close();
 	}
 	
-	File getAllOutput() {
+	def getAllOutput() {
 		File f = new File(outputDirectory, name + '-' + version + '.js')
 		f.createNewFile()
-		return f
+		f
 	}
 	
-	File getMinOutput() {
+	def getMinOutput() {
 		File f = new File(outputDirectory, name + '-' + version + '.min.js')
 		f.createNewFile()
-		return f
+		f
 	}
 }

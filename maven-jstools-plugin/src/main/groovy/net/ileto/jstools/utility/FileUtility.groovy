@@ -1,11 +1,10 @@
 package net.ileto.jstools.utility
 
-import java.io.File;
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang.StringUtils;
 
 class FileUtility {
 	
-	static String relativePathTo(File target, File source) {
+	def static relativePathTo(File target, File source) {
 		def toPath = target.canonicalPath
 		def fromPath = source.canonicalPath
 		
@@ -21,17 +20,28 @@ class FileUtility {
 		fromPath.count(File.separator).times {
 			toPath = '..' + File.separator + toPath
 		}
-		return toPath
+		toPath
 	}
 	
 	
-	static File replaceStart(File f, File start, File replace) {
+	def static replaceStart(File f, File start, File replace) {
 		String path = StringUtils.removeStart(f.path, start.path)
 		path = StringUtils.removeStart(path, File.pathSeparator)
-		return new File(replace, path)
+		new File(replace, path)
 	}
 	
-	static File replaceExtension(File f, String ext) {
-		return new File((f.path =~ /\..+$/).replaceFirst(ext.startsWith('.') ? ext : ('.' + ext)))
+	def static replaceExtension(File f, String ext) {
+		new File((f.path =~ /\.[^\.]+$/).replaceFirst(ext.startsWith('.') ? ext : ('.' + ext)))
+	}
+	
+	def static trimTokens(String s, String delim) {
+		List<String> result = []
+		s.tokenize(delim).each {
+			it = it.trim()
+			if(it) {
+				result << it
+			}
+		}
+		result.join(delim)
 	}
 }

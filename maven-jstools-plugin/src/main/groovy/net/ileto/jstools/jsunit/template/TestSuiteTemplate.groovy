@@ -12,8 +12,8 @@ class TestSuiteTemplate {
 <script>
 	function suite() {
 		var suite = new top.jsUnitTestSuite();
-	<% for(file in files) { %>
-		suite.addTestPage("${file.toURI().toURL()}");
+	<% for (page in testPages) { %>
+		suite.addTestPage("${page}");
 	<% } %>
 		return suite;
 	};
@@ -24,9 +24,9 @@ class TestSuiteTemplate {
 </html>
 '''
 	
-	String process(Map<String,Object> model) {
+	def process(Map<String,Object> model) {
 		def engine = new SimpleTemplateEngine()
 		def template = engine.createTemplate(html)
-		return template.make(model).toString()
+		template.make(model).toString()
 	}
 }

@@ -11,6 +11,7 @@ import net.jsunit.StandaloneTest
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugin.MojoFailureException
@@ -184,33 +185,34 @@ class JsUnitMojo extends GroovyMojo {
 		
 		copySources()
 		copyTestSources()
-		
-		configureServer(generateTestSuite())
+
+		generateTestSuite()
+		configureServer()
 		
 		if(!skipTests) {
 			TestRunner.run(StandaloneTest)
 		}
 	}
 	
-	void makeWorkDirectory() {
+	def makeWorkDirectory() {
 		ant.mkdir(dir:workDirectory)
 	}
 	
-	void copyJsUnitResources() {
+	def copyJsUnitResources() {
 		File temp = File.createTempFile('E3658158', '')
 		IOUtils.copy(getClass().getResourceAsStream('/jsunit.zip'), new FileOutputStream(temp))
 		ant.unzip(src:temp, dest:workDirectory)
 		temp.delete()
 	}
 	
-	void copySources() {
+	def copySources() {
 		if(!sourceDirectory.exists()) {
 			return
 		}
 		ant.copy(todir:workDirectory) { fileset(dir:sourceDirectory) }
 	}
 	
-	void copyTestSources() {
+	def copyTestSources() {
 		if (!testSourceDirectory.exists()) {
 			return 
 		}
@@ -219,25 +221,25 @@ class JsUnitMojo extends GroovyMojo {
 		generateTestPagesForJS()
 	}
 	
-	void configureServer(File testPage) {
-		System.setProperty("url", "${testRunnerUrl}?testPage=${testPage}&autoRun=${autoRun}&submitResults=localhost:${port}/jsunit/acceptor&showTestFrame=${showTestFrame}")
+	def configureServer() {
+		System.setProperty("resourceBase", workDirectory.path)
+		System.setProperty("logsDirectory", logsDirectory.path)
+		System.setProperty("url", "${browserHitUrl}")
 		System.setProperty("port", port)
 		System.setProperty("browserFileNames", getBrowserFileNames())
-		System.setProperty("logsDirectory", logsDirectory.getAbsolutePath())
 		System.setProperty("closeBrowsersAfterTestRuns", closeBrowsers.toString())
 	}
 	
-	File generateTestSuite() {
+	def generateTestSuite() {
 		String html = new TestSuiteTemplate().process([
-			files: getTests(),
+			testPages: getTestPageUrlList(),
 			jsUnitCore: "$jsUnitPath/app/jsUnitCore.js"
 		])
 		File result = new File(workDirectory, testSuiteFileName)
 		result.write(html)
-		return result
 	}
 	
-	File generateTestPagesForJS() {
+	def generateTestPagesForJS() {
 		if(!testSourceDirectory.exists()) {
 			return
 		}
@@ -251,7 +253,6 @@ class JsUnitMojo extends GroovyMojo {
 		for (f in scanner) {
 			File copyed = FileUtility.replaceStart(f, testSourceDirectory, workDirectory)
 			File parsed = FileUtility.replaceExtension(copyed, 'html')
-			
 			String html = new TestPageTemplate().process([
 				file: copyed,
 				jsUnitCore: FileUtility.relativePathTo(jsUnitCore, copyed).replace(File.separator, '/')
@@ -261,7 +262,7 @@ class JsUnitMojo extends GroovyMojo {
 		}
 	}
 	
-	List<File> getTests() {
+	def getTestPageUrlList() {
 		if(!testSourceDirectory.exists()) {
 			return []
 		}
@@ -279,29 +280,31 @@ class JsUnitMojo extends GroovyMojo {
 			}
 		}
 		
-		List<File> result = []
+		def result = []
 		for (f in scanner) {
-			result << f
+			result << getContextRootUrl() + (f.path - workDirectory.path).replace(File.separator, "/")
 		}
-		return result
+		result
 	}
 	
-	private URL getTestRunnerUrl() {
-		return new File(workDirectory, "${jsUnitPath}/testRunner.html").toURI().toURL()
+	def getContextRootUrl() {
+		"http://localhost:${port}/jsunit"
 	}
 	
-	String getBrowserFileNames() {
-		return trimTokens(browsers, ',')
+	def getTestRunnerUrl() {
+		"${contextRootUrl}/${jsUnitPath}/testRunner.html"
 	}
 	
-	private String trimTokens(String s, String delim) {
-		List<String> result = []
-		s.tokenize(delim).each {
-			it = it.trim()
-			if(it) {
-				result << it
-			}
-		}
-		return result.join(delim)
+	def getTestSuiteUrl() {
+		"${contextRootUrl}/${testSuiteFileName}"
+	}
+
+	def getBrowserHitUrl() {
+		//"${testRunnerUrl}?testPage=${testSuiteUrl}&autoRun=${autoRun}&submitResults=${contextRootUrl}/acceptor&showTestFrame=${showTestFrame}"
+		"${testRunnerUrl}?testPage=${testSuiteUrl}&autoRun=${autoRun}&showTestFrame=${showTestFrame}&submitresults=true"
+	}
+	
+	def getBrowserFileNames() {
+		FileUtility.trimTokens(browsers, ',')
 	}
 }

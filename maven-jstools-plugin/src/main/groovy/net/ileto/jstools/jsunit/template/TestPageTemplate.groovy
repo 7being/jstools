@@ -22,7 +22,7 @@ class TestPageTemplate {
 </html>
 '''
 	
-	String process(Map<String,Object> model) {
+	def process(Map<String,Object> model) {
 		model['scripts'] = []
 		model['srcbody'] = new StringBuffer()
 		
@@ -38,6 +38,6 @@ class TestPageTemplate {
 		
 		def engine = new SimpleTemplateEngine()
 		def template = engine.createTemplate(html)
-		return template.make(model).toString()
+		template.make(model).toString()
 	}
 }
