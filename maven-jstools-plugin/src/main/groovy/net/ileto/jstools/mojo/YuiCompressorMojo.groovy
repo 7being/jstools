@@ -2,9 +2,11 @@ package net.ileto.jstools.mojo
 
 import org.codehaus.gmaven.mojo.GroovyMojo
 import org.apache.maven.project.MavenProject
-import java.io.File;
-import org.mozilla.javascript.tools.ToolErrorReporter;
-import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
+import java.io.File
+import org.mozilla.javascript.tools.ToolErrorReporter
+import com.yahoo.platform.yui.compressor.JavaScriptCompressor
+
+import net.ileto.jstools.utility.FileUtility
 
 /**
  * Compress javascripts using yuicompressor
@@ -22,8 +24,7 @@ class YuiCompressorMojo extends GroovyMojo {
 	private MavenProject project
 	
 	/**
-	 * @required
-	 * @parameter
+	 * @parameter expression="${project.artifactId}"
 	 */
 	private String name;
 	
@@ -40,7 +41,7 @@ class YuiCompressorMojo extends GroovyMojo {
 	private File sourceDirectory
 	
 	/**
-	 * @parameter expression="${project.build.directory}/classes"
+	 * @parameter expression="${project.build.outputDirectory}"
 	 */
 	private File outputDirectory
 	
@@ -69,42 +70,53 @@ class YuiCompressorMojo extends GroovyMojo {
 			return
 		}
 		
+                beforeStart()
 		generateMinFile(generateAllFile())
 	}
+
+        def beforeStart() {
+            ant.mkdir(dir:outputDirectory)
+            includes = FileUtility.trimTokens(includes, ',')
+            excludes = FileUtility.trimTokens(excludes, ',')
+        }
 
 	def getJavascripts() {
 		if(!sourceDirectory.exists()) {
 			return []
 		}
-		def scanner = ant.fileScanner {
-			fileset(dir: sourceDirectory) {
-				includes.split(',').each { include(name:it) }
-				excludes.split(',').each { exclude(name:it) }
-			}
-		}
+                
+                def result = []
+
+                for (inc in includes.split(',')) {
+                    def scanner = ant.fileScanner {
+                            fileset(dir: sourceDirectory) {
+                                    include(name:inc)
+                                    excludes.split(',').each { exclude(name:it) }
+                            }
+                    }
 		
-		List<File> result = []
-		for(f in scanner) {
-			result << f
-		}
-		result
+                    for(f in scanner) {
+                            result << f
+                    }
+                }
+		
+		result.unique {a, b -> a.canonicalPath.compareTo(b.canonicalPath) }
 	}
 
 	
 	def generateAllFile() {
 		File output = getAllOutput()
 		for (file in getJavascripts()) {	
-			output.append(new FileInputStream(file))
+			output.append(file.newInputStream())
 			output.append(';')
 		}
 		output
 	}
 	
 	def generateMinFile(File input) {
-		JavaScriptCompressor compressor = new JavaScriptCompressor(new InputStreamReader(new FileInputStream(input)),
-				new ToolErrorReporter(true));
+		JavaScriptCompressor compressor = new JavaScriptCompressor(input.newReader(), new ToolErrorReporter(true));
 		
-		Writer writer = new OutputStreamWriter(new FileOutputStream(getMinOutput()), "UTF-8");
+		Writer writer = new OutputStreamWriter(getMinOutput().newOutputStream(), "UTF-8");
 		compressor.compress(writer, Integer.MAX_VALUE, false, false, false, false);
 		writer.close();
 	}
