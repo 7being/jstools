@@ -28,7 +28,7 @@ class TestPageTemplate {
 		
 		
 		model['file'].eachLine {
-			def m = ( ~/^import\s([\/\w.]+\.js)$/ ).matcher(it)
+			def m = ( ~/^import\s(.+\.js)$/ ).matcher(it)
 			if (m.matches()) {
 				model['scripts'] << m.group(1)
 			} else {
