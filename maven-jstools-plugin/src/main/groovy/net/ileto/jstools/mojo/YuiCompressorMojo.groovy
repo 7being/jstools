@@ -105,18 +105,22 @@ class YuiCompressorMojo extends GroovyMojo {
 
 	
 	def generateAllFile() {
-		File output = getAllOutput()
+		File output = getAllOutput();
+		Writer writer = new OutputStreamWriter(output.newOutputStream(), 'UTF-8');
 		for (file in getJavascripts()) {	
-			output.append(file.newInputStream())
-			output.append(';')
+			writer.append(file.getText('UTF-8'));
+			//output.append(file.newInputStream())
+			writer.append(';')
 		}
+		writer.close();
 		output
 	}
 	
 	def generateMinFile(File input) {
-		JavaScriptCompressor compressor = new JavaScriptCompressor(input.newReader(), new ToolErrorReporter(true));
+		//JavaScriptCompressor compressor = new JavaScriptCompressor(input.newReader('UTF-8'), new ToolErrorReporter(true));
+		JavaScriptCompressor compressor = new JavaScriptCompressor(new InputStreamReader(input.newInputStream(), 'UTF-8'), new ToolErrorReporter(true));
 		
-		Writer writer = new OutputStreamWriter(getMinOutput().newOutputStream(), "UTF-8");
+		Writer writer = new OutputStreamWriter(getMinOutput().newOutputStream(), 'UTF-8');
 		compressor.compress(writer, Integer.MAX_VALUE, false, false, false, false);
 		writer.close();
 	}
